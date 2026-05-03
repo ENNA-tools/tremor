@@ -36,6 +36,11 @@ class CheckID(Enum):
     SECRET_IN_EXPRESSION = "T006"
     UNTRUSTED_PR_CHECKOUT = "T007"
 
+    NEW_NETWORK_HOST = "T101"
+    SUSPICIOUS_PROCESS = "T102"
+    NEW_ENV_SECRET = "T103"
+    TIMING_ANOMALY = "T104"
+
 
 @dataclass
 class Finding:

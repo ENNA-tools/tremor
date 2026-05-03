@@ -8,7 +8,7 @@ branding:
 
 inputs:
   mode:
-    description: 'Detection mode: audit (PR workflow analysis) or monitor (runtime behavioral baseline)'
+    description: 'Detection mode: audit | monitor | diff'
     required: false
     default: 'audit'
   severity-threshold:
@@ -23,6 +23,14 @@ inputs:
     description: 'Path to tremor config file'
     required: false
     default: '.tremor/config.yml'
+  base-ref:
+    description: 'Base ref for diff mode (branch to compare against)'
+    required: false
+    default: 'origin/main'
+  post-comment:
+    description: 'Post findings as a PR comment (diff mode only, requires GITHUB_TOKEN)'
+    required: false
+    default: 'true'
 
 outputs:
   findings:
@@ -31,6 +39,8 @@ outputs:
     description: 'Aggregate risk score (0-100)'
   summary:
     description: 'Human-readable summary of findings'
+  risk-delta:
+    description: 'Trust surface risk delta from diff mode (-100 to +100)'
 
 runs:
   using: 'composite'
@@ -45,6 +55,10 @@ runs:
       with:
         python-version: '3.11'
 
+    - name: Install dependencies
+      shell: bash
+      run: pip install pyyaml
+
     - name: Run Tremor
       shell: bash
       env:
@@ -52,4 +66,5 @@ runs:
         TREMOR_SEVERITY: ${{ inputs.severity-threshold }}
         TREMOR_BASELINE: ${{ inputs.baseline-path }}
         TREMOR_CONFIG: ${{ inputs.config-path }}
+        TREMOR_BASE_REF: ${{ inputs.base-ref }}
       run: python3 ${{ github.action_path }}/src/main.py

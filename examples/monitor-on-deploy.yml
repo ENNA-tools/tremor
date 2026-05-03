@@ -1,0 +1,26 @@
+name: Deploy with Tremor Monitor
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Build
+        run: npm ci && npm run build
+
+      - name: Tremor runtime monitor
+        uses: 1oosedows/tremor@main
+        with:
+          mode: monitor
+          severity-threshold: high
+
+      - name: Deploy
+        run: echo "deploy step here"
