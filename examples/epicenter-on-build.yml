@@ -1,0 +1,42 @@
+name: Build with Artifact Scanning
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Scan build artifacts
+        uses: 1oosedows/tremor@main
+        id: epicenter
+        with:
+          mode: epicenter
+          target: dist/
+          threshold: '25'
+
+      - name: Upload SARIF (optional)
+        if: always() && steps.epicenter.outputs.findings != '[]'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+        continue-on-error: true
+
+      - name: Print summary
+        if: always()
+        run: |
+          echo "Epicenter score: ${{ steps.epicenter.outputs.epicenter-score }}"
+          echo "Summary: ${{ steps.epicenter.outputs.summary }}"

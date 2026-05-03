@@ -4,7 +4,7 @@ Pipeline behavioral anomaly detection for GitHub Actions.
 
 You audit your code. Who audits your pipeline?
 
-## Three modes
+## Four modes
 
 ### `audit` — Static workflow analysis
 
@@ -46,6 +46,28 @@ Snapshots the pipeline execution environment and compares against a rolling base
 
 First run creates the baseline. Subsequent runs compare and flag deviations.
 
+### `epicenter` — Build artifact anomaly scanning
+
+Scans build output directories for steganographic content, hidden payloads, obfuscated commands, and supply chain attack indicators embedded in artifacts.
+
+| Finding type | What it catches |
+|---|---|
+| Steganographic content | Data hidden in image LSBs, trailing bytes after EOF markers, appended archives |
+| Obfuscated payloads | Base64-encoded shell commands, hex-encoded executables, polyglot files |
+| Hidden commands | Executable content disguised as data files, shebang lines in non-script extensions |
+| Supply chain indicators | Unexpected network URLs in artifacts, cryptocurrency addresses, encoded C2 patterns |
+| Entropy anomalies | File regions with entropy inconsistent with declared content type |
+
+Epicenter assigns an overall anomaly score (0-100). If the score meets or exceeds the configured threshold, the step exits with code 2.
+
+```yaml
+- uses: 1oosedows/tremor@main
+  with:
+    mode: epicenter
+    target: dist/
+    threshold: '25'
+```
+
 ## Usage
 
 ```yaml
@@ -66,6 +88,13 @@ First run creates the baseline. Subsequent runs compare and flag deviations.
   with:
     mode: monitor
     severity-threshold: high
+
+# Epicenter mode — scan build artifacts for hidden threats
+- uses: 1oosedows/tremor@main
+  with:
+    mode: epicenter
+    target: dist/
+    threshold: '25'
 ```
 
 See `examples/` for full workflow files.
@@ -96,6 +125,9 @@ allow:
 ```bash
 pip install pyyaml
 cd src && TREMOR_MODE=audit python main.py
+
+# Epicenter mode locally
+cd src && TREMOR_MODE=epicenter TREMOR_TARGET=../dist python main.py
 ```
 
 ## License

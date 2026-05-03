@@ -112,12 +112,87 @@ def run_diff(config: dict, base_ref: str) -> None:
         sys.exit(1)
 
 
+def run_epicenter(target: str, threshold: int) -> None:
+    from tremor.epicenter.engine import scan_path
+
+    result = scan_path(target)
+
+    overall_score = result.overall_score
+    total = result.total_artifacts
+    flagged = result.flagged_artifacts
+
+    flat_findings = []
+    for scan in result.scans:
+        for f in scan.findings:
+            flat_findings.append({
+                "file": scan.path,
+                "score": scan.anomaly_score,
+                "type": f.finding_type.value,
+                "confidence": f.confidence,
+                "description": f.description,
+                "location": f.location,
+            })
+
+    summary_parts = []
+    if result.finding_summary:
+        for ft, count in sorted(result.finding_summary.items(), key=lambda x: -x[1]):
+            summary_parts.append(f"{ft}: {count}")
+    summary_text = f"{flagged}/{total} artifacts flagged, score {overall_score:.0f}/100"
+    if summary_parts:
+        summary_text += f" ({', '.join(summary_parts[:5])})"
+
+    for scan in result.scans:
+        if not scan.findings:
+            continue
+        level = "error" if scan.anomaly_score >= 50 else "warning"
+        for f in scan.findings:
+            print(f"::{level} file={scan.path},title={f.finding_type.value}::{f.description}")
+
+    output_file = os.environ.get("GITHUB_OUTPUT")
+    if output_file:
+        with open(output_file, "a") as f:
+            f.write(f"findings={json.dumps(flat_findings)}\n")
+            f.write(f"risk-score={overall_score:.0f}\n")
+            f.write(f"epicenter-score={overall_score:.0f}\n")
+            f.write(f"summary={summary_text}\n")
+
+    summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_file:
+        with open(summary_file, "a") as f:
+            f.write("## Tremor Epicenter\n\n")
+            f.write(f"**Target:** `{target}` | **Score:** {overall_score:.0f}/100")
+            f.write(f" (threshold: {threshold}) | **Artifacts:** {flagged}/{total} flagged\n\n")
+            if flat_findings:
+                f.write("| Score | File | Finding |\n")
+                f.write("|---|---|---|\n")
+                for scan in result.scans:
+                    if scan.findings:
+                        for sf in scan.findings:
+                            f.write(f"| {scan.anomaly_score:.0f} | `{scan.path}` | [{sf.confidence:.0%}] {sf.description[:120]} |\n")
+            else:
+                f.write("No anomalies detected.\n")
+
+    if flagged:
+        print(f"\nTremor Epicenter: {summary_text}", file=sys.stderr)
+    else:
+        print(f"\nTremor Epicenter: Clean — {total} artifacts scanned, score {overall_score:.0f}/100")
+
+    if overall_score >= threshold:
+        sys.exit(2)
+
+
 def main():
     mode = os.environ.get("TREMOR_MODE", "audit")
     severity = os.environ.get("TREMOR_SEVERITY", "medium")
     baseline_path = os.environ.get("TREMOR_BASELINE", ".tremor/baseline.json")
     config_path = os.environ.get("TREMOR_CONFIG", ".tremor/config.yml")
     base_ref = os.environ.get("TREMOR_BASE_REF", "origin/main")
+
+    if mode == "epicenter":
+        target = os.environ.get("TREMOR_TARGET", ".")
+        threshold = int(os.environ.get("TREMOR_THRESHOLD", "25"))
+        run_epicenter(target, threshold)
+        return
 
     config = load_config(config_path)
 
@@ -130,7 +205,7 @@ def main():
     elif mode == "audit":
         findings = run_audit(config)
     else:
-        print(f"Unknown mode: {mode}. Use 'audit', 'monitor', or 'diff'.", file=sys.stderr)
+        print(f"Unknown mode: {mode}. Use 'audit', 'monitor', 'diff', or 'epicenter'.", file=sys.stderr)
         sys.exit(1)
 
     if not findings:

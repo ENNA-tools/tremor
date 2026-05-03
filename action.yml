@@ -8,7 +8,7 @@ branding:
 
 inputs:
   mode:
-    description: 'Detection mode: audit | monitor | diff'
+    description: 'Detection mode: audit | monitor | diff | epicenter'
     required: false
     default: 'audit'
   severity-threshold:
@@ -31,16 +31,31 @@ inputs:
     description: 'Post findings as a PR comment (diff mode only, requires GITHUB_TOKEN)'
     required: false
     default: 'true'
+  target:
+    description: 'Path to scan in epicenter mode (build output directory)'
+    required: false
+    default: '.'
+  threshold:
+    description: 'Anomaly score threshold for epicenter mode (0-100, exits non-zero if met)'
+    required: false
+    default: '25'
 
 outputs:
   findings:
     description: 'JSON array of detected anomalies'
+    value: ${{ steps.tremor.outputs.findings }}
   risk-score:
     description: 'Aggregate risk score (0-100)'
+    value: ${{ steps.tremor.outputs.risk-score }}
   summary:
     description: 'Human-readable summary of findings'
+    value: ${{ steps.tremor.outputs.summary }}
   risk-delta:
     description: 'Trust surface risk delta from diff mode (-100 to +100)'
+    value: ${{ steps.tremor.outputs.risk-delta }}
+  epicenter-score:
+    description: 'Overall anomaly score from artifact scanning (epicenter mode)'
+    value: ${{ steps.tremor.outputs.epicenter-score }}
 
 runs:
   using: 'composite'
@@ -60,6 +75,7 @@ runs:
       run: pip install pyyaml
 
     - name: Run Tremor
+      id: tremor
       shell: bash
       env:
         TREMOR_MODE: ${{ inputs.mode }}
@@ -67,4 +83,6 @@ runs:
         TREMOR_BASELINE: ${{ inputs.baseline-path }}
         TREMOR_CONFIG: ${{ inputs.config-path }}
         TREMOR_BASE_REF: ${{ inputs.base-ref }}
+        TREMOR_TARGET: ${{ inputs.target }}
+        TREMOR_THRESHOLD: ${{ inputs.threshold }}
       run: python3 ${{ github.action_path }}/src/main.py
