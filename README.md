@@ -61,7 +61,7 @@ Scans build output directories for steganographic content, hidden payloads, obfu
 Epicenter assigns an overall anomaly score (0-100). If the score meets or exceeds the configured threshold, the step exits with code 2.
 
 ```yaml
-- uses: 1oosedows/tremor@main
+- uses: ENNA-tools/tremor@main
   with:
     mode: epicenter
     target: dist/
@@ -72,25 +72,25 @@ Epicenter assigns an overall anomaly score (0-100). If the score meets or exceed
 
 ```yaml
 # Audit mode — scan workflow files on every PR
-- uses: 1oosedows/tremor@main
+- uses: ENNA-tools/tremor@main
   with:
     mode: audit
     severity-threshold: medium
 
 # Diff mode — analyze trust surface changes when workflows are modified
-- uses: 1oosedows/tremor@main
+- uses: ENNA-tools/tremor@main
   with:
     mode: diff
     base-ref: origin/main
 
 # Monitor mode — runtime behavioral baseline during deploys
-- uses: 1oosedows/tremor@main
+- uses: ENNA-tools/tremor@main
   with:
     mode: monitor
     severity-threshold: high
 
 # Epicenter mode — scan build artifacts for hidden threats
-- uses: 1oosedows/tremor@main
+- uses: ENNA-tools/tremor@main
   with:
     mode: epicenter
     target: dist/

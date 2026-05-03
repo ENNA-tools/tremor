@@ -146,7 +146,7 @@ def to_sarif(pipeline_result: PipelineScanResult) -> dict[str, Any]:
                     "driver": {
                         "name": "epicenter",
                         "semanticVersion": "0.1.0",
-                        "informationUri": "https://github.com/1oosedows/tremor",
+                        "informationUri": "https://github.com/ENNA-tools/tremor",
                         "rules": rules,
                     }
                 },

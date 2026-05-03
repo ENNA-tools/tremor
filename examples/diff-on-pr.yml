@@ -13,7 +13,7 @@ jobs:
   tremor-diff:
     runs-on: ubuntu-latest
     steps:
-      - uses: 1oosedows/tremor@main
+      - uses: ENNA-tools/tremor@main
         with:
           mode: diff
           base-ref: origin/main

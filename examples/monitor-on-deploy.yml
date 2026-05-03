@@ -17,7 +17,7 @@ jobs:
         run: npm ci && npm run build
 
       - name: Tremor runtime monitor
-        uses: 1oosedows/tremor@main
+        uses: ENNA-tools/tremor@main
         with:
           mode: monitor
           severity-threshold: high

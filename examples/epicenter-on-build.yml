@@ -21,7 +21,7 @@ jobs:
           npm run build
 
       - name: Scan build artifacts
-        uses: 1oosedows/tremor@main
+        uses: ENNA-tools/tremor@main
         id: epicenter
         with:
           mode: epicenter

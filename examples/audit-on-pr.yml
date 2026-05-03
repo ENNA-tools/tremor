@@ -11,7 +11,7 @@ jobs:
   tremor-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: 1oosedows/tremor@main
+      - uses: ENNA-tools/tremor@main
         with:
           mode: audit
           severity-threshold: medium

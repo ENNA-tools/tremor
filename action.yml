@@ -1,6 +1,6 @@
 name: 'Tremor'
 description: 'Pipeline behavioral anomaly detection — audit your CI/CD runtime for supply chain deviations'
-author: '1oosedows'
+author: 'ENNA-tools'
 
 branding:
   icon: 'activity'
