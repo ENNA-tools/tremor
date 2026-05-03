@@ -1,0 +1,55 @@
+name: 'Tremor'
+description: 'Pipeline behavioral anomaly detection — audit your CI/CD runtime for supply chain deviations'
+author: '1oosedows'
+
+branding:
+  icon: 'activity'
+  color: 'orange'
+
+inputs:
+  mode:
+    description: 'Detection mode: audit (PR workflow analysis) or monitor (runtime behavioral baseline)'
+    required: false
+    default: 'audit'
+  severity-threshold:
+    description: 'Minimum severity to fail the check: low, medium, high, critical'
+    required: false
+    default: 'medium'
+  baseline-path:
+    description: 'Path to behavioral baseline file (auto-generated on first run)'
+    required: false
+    default: '.tremor/baseline.json'
+  config-path:
+    description: 'Path to tremor config file'
+    required: false
+    default: '.tremor/config.yml'
+
+outputs:
+  findings:
+    description: 'JSON array of detected anomalies'
+  risk-score:
+    description: 'Aggregate risk score (0-100)'
+  summary:
+    description: 'Human-readable summary of findings'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Run Tremor
+      shell: bash
+      env:
+        TREMOR_MODE: ${{ inputs.mode }}
+        TREMOR_SEVERITY: ${{ inputs.severity-threshold }}
+        TREMOR_BASELINE: ${{ inputs.baseline-path }}
+        TREMOR_CONFIG: ${{ inputs.config-path }}
+      run: python3 ${{ github.action_path }}/src/main.py
