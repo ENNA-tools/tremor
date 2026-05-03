@@ -39,6 +39,10 @@ inputs:
     description: 'Anomaly score threshold for epicenter mode (0-100, exits non-zero if met)'
     required: false
     default: '25'
+  sarif-path:
+    description: 'Write SARIF report to this path (epicenter mode only, empty = disabled)'
+    required: false
+    default: ''
 
 outputs:
   findings:
@@ -85,4 +89,5 @@ runs:
         TREMOR_BASE_REF: ${{ inputs.base-ref }}
         TREMOR_TARGET: ${{ inputs.target }}
         TREMOR_THRESHOLD: ${{ inputs.threshold }}
+        TREMOR_SARIF: ${{ inputs.sarif-path }}
       run: python3 ${{ github.action_path }}/src/main.py

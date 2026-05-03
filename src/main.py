@@ -172,6 +172,14 @@ def run_epicenter(target: str, threshold: int) -> None:
             else:
                 f.write("No anomalies detected.\n")
 
+    sarif_path = os.environ.get("TREMOR_SARIF", "")
+    if sarif_path:
+        from tremor.epicenter.sarif import to_sarif_json
+        from pathlib import Path
+        Path(sarif_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(sarif_path).write_text(to_sarif_json(result))
+        print(f"Tremor Epicenter: SARIF written to {sarif_path}")
+
     if flagged:
         print(f"\nTremor Epicenter: {summary_text}", file=sys.stderr)
     else:
